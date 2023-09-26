@@ -1,8 +1,8 @@
 
 def parser_add_main_args(parser):
     # dataset
-    parser.add_argument('--data_dir', type=str, default='data/scbasset_data/same_organization/mouse_brain_500.h5ad')
-    parser.add_argument('--device', type=int, default=3,
+    parser.add_argument('--data_dir', type=str, default='../output/BoneMarrowB_liver/CACNN_output.h5ad')
+    parser.add_argument('--device', type=int, default=0,
                         help='which gpu to use if any (default: 0)')
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--epochs', type=int, default=300)

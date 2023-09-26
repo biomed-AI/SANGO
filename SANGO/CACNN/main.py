@@ -70,13 +70,13 @@ if __name__ == "__main__":
     logger.info(get_run_info(sys.argv, args))
 
     if args.g == "hg38":
-        genome = "../genome/GRCh38.primary_assembly.genome.fa.h5"
+        genome = "../../genome/GRCh38.primary_assembly.genome.fa.h5"
     elif args.g == "hg19":
-        genome = "../genome/GRCh38.primary_assembly.genome.fa.h5"
+        genome = "../../genome/GRCh38.primary_assembly.genome.fa.h5"
     elif args.g == "mm9":
-        genome = "../genome/mm9.fa.h5"
+        genome = "../../genome/mm9.fa.h5"
     elif args.g == "mm10":
-        genome = "../genome/mm10.fa.h5"
+        genome = "../../genome/mm10.fa.h5"
     ds = dataset.SingleCellDataset(dataset.load_adata(args.data), seq_len=args.seq_len, genome=genome)
 
     train_loader = DataLoader(

@@ -1,6 +1,7 @@
 ## SANGO
 
 The official implementation for "SANGO".
+![](figures/model.png)
 
 **Table of Contents**
 
@@ -26,6 +27,12 @@ and then run the following code to install the required package:
 
 ~~~shell
 pip install -r requirements.txt
+~~~
+
+and then Install [PyG](https://pytorch-geometric.readthedocs.io/en/latest/install/installation.html) according to the CUDA version, take torch-1.13.1+cu117 as an example:
+
+~~~shell
+pip install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-1.13.1+cu117.html
 ~~~
 
 ### Usage
