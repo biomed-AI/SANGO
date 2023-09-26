@@ -59,6 +59,6 @@ python main.py --use_bn \
 
 ### Tutorial
 
-* BoneMarrowB_Liver.ipynb
-* MosP1_Cerebellum.ipynb
+* [BoneMarrowB_Liver.ipynb](BoneMarrowB_Liver.ipynb)
+* [MosP1_Cerebellum.ipynb](MosP1_Cerebellum.ipynb)
 
