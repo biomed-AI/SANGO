@@ -35,30 +35,22 @@ pip install -r requirements.txt
 # As needed
 
 # Stage 1: embeddings extraction
-cd CACNN
+cd SANGO/CACNN
 
-python main.py -i ../preprocessed_data/BoneMarrowB_liver.h5ad \
-               -z 64 \
-               -g mm9 \
-               -o ../output/BoneMarrowB_liver \
-               --max_epoch 300 \
-               --device 0
+python main.py -i reference_query_example.h5ad \ # input data
+               -g mm9 \ # genome
+               -o ../output/reference_query_example \ # output path
 
 # Stage 2: cell type prediction
 cd ../GraphTransformer
 
-python main.py --use_bn \
-               --use_residual \
-               --use_gumbel \
-               --data_dir ../output/BoneMarrowB_liver/CACNN_output.h5ad \
-               --train_name_list BoneMarrow_62216 --test_name Liver_62016 \
+python main.py --data_dir ../output/reference_query_example/CACNN_output.h5ad \ # input data
+               --train_name_list reference --test_name query \
                --save_path ../output \
-               --save_name BoneMarrowB_liver \
-               --device 0
+               --save_name reference_query_example \
 ~~~
 
 ### Tutorial
 
-* [BoneMarrowB_Liver.ipynb](BoneMarrowB_Liver.ipynb)
-* [MosP1_Cerebellum.ipynb](MosP1_Cerebellum.ipynb)
+* [reference_query_example.ipynb](reference_query_example.ipynb)
 
