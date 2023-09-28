@@ -16,7 +16,7 @@ The official implementation for "**SANGO**".
 
 To Do.
 
-We provide an easy access to the used datasets in the [synapse]([SANGO - syn52559388 - Files (synapse.org)](https://www.synapse.org/#!Synapse:syn52559388/files/)) .
+We provide an easy access to the used datasets in the [synapse](https://www.synapse.org/#!Synapse:syn52559388/files/).
 
 ## Installation
 
@@ -60,12 +60,12 @@ The processed data are used as input to CACNN and a reference genome is provided
 # Stage 1: embeddings extraction
 cd SANGO/CACNN
 
-python main.py -i ../../preprocessed_data/reference_query_example.h5ad \ 	# input data(after data preprocessing)
-               -g mm9 \ 													# reference genome
-               -o ../../output/reference_query_example  					# output path
+python main.py -i ../../preprocessed_data/reference_query_example.h5ad \ # input data(after data preprocessing)
+               -g mm9 \ # reference genome
+               -o ../../output/reference_query_example # output path
 ~~~
 
-Running the above command will generate three output files in the output path (`../../output/reference_query_example`):
+Running the above command will generate three output files in the output path:
 
 * `CACNN_train.log`: recording logs during training
 * `CACNN_best_model.pt`: storing the model weights with the best AUC score during training
@@ -83,7 +83,7 @@ python main.py  --data_dir ../../output/reference_query_example/CACNN_output.h5a
                 --save_name reference_query_example
 ~~~
 
-Running the above command will generate three output files in the output path (`../../output/reference_query_example`):
+Running the above command will generate three output files in the output path:
 
 * `model.pkl`: storing the model weights with the best valid loss during training.
 * `embedding.h5ad`: an anndata file storing the embedding extracted by GraphTransformer.  And `.obs['Pred']` saves the results of the prediction.
@@ -95,7 +95,8 @@ Running the above command will generate three output files in the output path (`
 
 1. Install the required environment according to [Installation](#Installation).
 2. Create a folder `data` and download [reference_query_example.h5ad](https://www.synapse.org/#!Synapse:syn52566797).
-3. For more detailed information, run the tutorial [reference_query_example.ipynb](reference_query_example.ipynb) for how to do data preprocessing and training.
+3. Create a folder `genome` and download [mm9.fa.h5](https://www.synapse.org/#!Synapse:syn52566798).
+4. For more detailed information, run the tutorial [reference_query_example.ipynb](reference_query_example.ipynb) for how to do data preprocessing and training.
 
 ## Citation
 
