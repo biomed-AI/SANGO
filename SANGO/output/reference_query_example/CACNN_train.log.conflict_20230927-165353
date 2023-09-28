@@ -1,0 +1,5 @@
+INFO(20230927 16:53:53) [main.py:72]:
+##time: Wed Sep 27 16:53:53 2023
+##cwd: /data/user/luomai/SANGO/SANGO/CACNN
+##cmd: main.py -i ../preprocessed_data/reference_query_example.h5ad -g mm9 -o ../output/reference_query_example
+##args: Namespace(alpha=0.0, batch_size=128, data='../preprocessed_data/reference_query_example.h5ad', device=0, g='mm9', lr=0.01, max_epoch=300, num_workers=32, outdir='../output/reference_query_example', seed=2020, seq_len=1344, use_reg_cell=False, w=False, z=64)

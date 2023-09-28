@@ -34,6 +34,7 @@ pip install -r requirements.txt
 and then install [PyG](https://pytorch-geometric.readthedocs.io/en/latest/install/installation.html) according to the CUDA version, take torch-1.13.1+cu117 as an example:
 
 ~~~shell
+pip install torch_geometric
 pip install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-1.13.1+cu117.html
 ~~~
 
@@ -47,7 +48,7 @@ pip install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -
 cd SANGO/CACNN
 
 python main.py -i reference_query_example.h5ad \ # input data
-               -g mm9 \ # genome
+               -g mm9 \ # reference genome
                -o ../output/reference_query_example \ # output path
 
 # Stage 2: cell type prediction

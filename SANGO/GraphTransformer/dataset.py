@@ -193,8 +193,16 @@ def atac_data_graph_construction(data_path, train_name_list, test_name, sample_r
     print("shape of concat train data:")
     print(f"\t{adata_train.shape}")
 
-    adata_test = adata[adata.obs['Batch'] == test_name]
-    print(f"shape of test data:")
+    adata_test = None
+    print("shape of test data:")
+    for test_name_iter in test_name:
+        adata_iter = adata[adata.obs["Batch"] == test_name_iter]
+        print(f"\t{adata_iter.shape}")
+        if adata_test is None:
+            adata_test = adata_iter
+        else:
+            adata_test = sc.AnnData.concatenate(adata_test, adata_iter)
+    print("shape of concat test data:")
     print(f"\t{adata_test.shape}")
 
     #----- preprocess -----
@@ -268,7 +276,8 @@ def atac_data_graph_construction(data_path, train_name_list, test_name, sample_r
     datastr_name = ""
     for train_name in train_name_list:
         datastr_name += train_name + "_"
-    datastr_name += test_name
+    for test_name_iter in test_name:
+        datastr_name += test_name_iter + "_"
 
     bbknn_construct_graph(datastr_name, data, batch_info, edge_ratio, adata_train.obs[label_name].values, adata_test.obs[label_name].values, save_path)
 

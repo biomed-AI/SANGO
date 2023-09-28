@@ -1,0 +1,9 @@
+# .gitignore
+data/
+genome/
+output/
+preprocessed_data/
+save/
+make_example_data.ipynb
+run_1.sh
+Untitled.ipynb

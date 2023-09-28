@@ -1,7 +1,7 @@
 
 def parser_add_main_args(parser):
     # dataset
-    parser.add_argument('--data_dir', type=str, default='../output/BoneMarrowB_liver/CACNN_output.h5ad')
+    parser.add_argument('--data_dir', type=str, default='../../output/BoneMarrowB_liver/CACNN_output.h5ad')
     parser.add_argument('--device', type=int, default=0,
                         help='which gpu to use if any (default: 0)')
     parser.add_argument('--seed', type=int, default=42)
@@ -43,12 +43,12 @@ def parser_add_main_args(parser):
                         help='non-linearity for relational bias')
     parser.add_argument('--batch_size', type=int, default=50000)
 
-    parser.add_argument("--train_name_list", type=str, nargs='+', default=["Cerebellum_62216"])
-    parser.add_argument("--test_name", type=str, nargs='+', default=["PreFrontalCortex_62216"])
+    parser.add_argument("--train_name_list", type=str, nargs='+', default=["BoneMarrow_62216"])
+    parser.add_argument("--test_name", type=str, nargs='+', default=["Liver_62016"])
     parser.add_argument("--sample_ratio", type=float, default=0.1)
     parser.add_argument("--edge_ratio", type=float, default=0.0)
-    parser.add_argument("--save_path", type=str, default="save")
-    parser.add_argument("--save_name", type=str, default="test")
+    parser.add_argument("--save_path", type=str, default="../../output")
+    parser.add_argument("--save_name", type=str, default="BoneMarrowB_liver")
 
 
 

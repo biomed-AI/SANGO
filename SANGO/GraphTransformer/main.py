@@ -1,5 +1,6 @@
+import warnings
+warnings.filterwarnings("ignore")
 import argparse
-import sys
 import os, random
 import numpy as np
 import torch
