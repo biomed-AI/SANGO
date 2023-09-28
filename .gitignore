@@ -1,9 +1,15 @@
 # .gitignore
-data/
-genome/
-output/
-preprocessed_data/
-save/
+data/bench_large_data.h5ad
+data/raw_mouse_brain.h5ad
+genome/GRCh38.primary_assembly.genome.fa.h5
+genome/mm9.fa
+genome/mm9.fa.h5
+genome/mm10.fa
+genome/mm10.fa.h5
+output/BoneMarrowB_liver
+output/reference_query_example
+output/test
+preprocessed_data/BoneMarrowB_liver.h5ad
 make_example_data.ipynb
 run_1.sh
 Untitled.ipynb
