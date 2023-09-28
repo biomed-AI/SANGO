@@ -2,7 +2,7 @@
 
 # SANGO
 
-The official implementation for "SANGO".
+The official implementation for "**SANGO**".
 
 **Table of Contents**
 
@@ -16,9 +16,11 @@ The official implementation for "SANGO".
 
 To Do.
 
+We provide an easy access to the used datasets in the [synapse]([SANGO - syn52559388 - Files (synapse.org)](https://www.synapse.org/#!Synapse:syn52559388/files/)) .
+
 ## Installation
 
-To reproduce SANGO, we suggest first create a conda environment by:
+To reproduce **SANGO**, we suggest first create a conda environment by:
 
 ~~~shell
 conda create -n SANGO python=3.8
@@ -40,33 +42,60 @@ pip install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -
 
 ## Usage
 
-~~~shell
-# data preprocessing
-# As needed
+### data preprocessing
 
+To Do.
+
+In order to run **SANGO**, we need to first create anndata from the raw data.
+
+The h5ad file should have cells as obs and peaks as var. There should be at least three columns in `var`:  `chr`, `start`, `end` that indicate the genomic region of each peak. The h5ad file should also contain two columns in the `obs`: `Batch` and `CellType`, where `Batch` is used to distinguish between reference and query data, and `CellType` indicates the true label of the cell.
+
+Notice that we filter out peaks accessible in < 1% cells for optimal performance.
+
+### Stage 1: embeddings extraction
+
+The processed data are used as input to CACNN and a reference genome is provided to extract the embedding incorporating sequence information: 
+
+~~~shell
 # Stage 1: embeddings extraction
 cd SANGO/CACNN
 
-python main.py -i reference_query_example.h5ad \ # input data
-               -g mm9 \ # reference genome
-               -o ../output/reference_query_example \ # output path
+python main.py -i ../../preprocessed_data/reference_query_example.h5ad \ 	# input data(after data preprocessing)
+               -g mm9 \ 													# reference genome
+               -o ../../output/reference_query_example  					# output path
+~~~
 
+Running the above command will generate three output files in the output path (`../../output/reference_query_example`):
+
+* `CACNN_train.log`: recording logs during training
+* `CACNN_best_model.pt`: storing the model weights with the best AUC score during training
+* `CACNN_output.h5ad`: an anndata file storing the embedding extracted by CACNN.
+
+### Stage 2: cell type prediction
+
+~~~shell
 # Stage 2: cell type prediction
 cd ../GraphTransformer
 
-python main.py --data_dir ../output/reference_query_example/CACNN_output.h5ad \ # input data
-               --train_name_list reference --test_name query \
-               --save_path ../output \
-               --save_name reference_query_example \
+python main.py  --data_dir ../../output/reference_query_example/CACNN_output.h5ad \ # input data
+                --train_name_list reference --test_name query \
+                --save_path ../../output \
+                --save_name reference_query_example
 ~~~
+
+Running the above command will generate three output files in the output path (`../../output/reference_query_example`):
+
+* `model.pkl`: storing the model weights with the best valid loss during training.
+* `embedding.h5ad`: an anndata file storing the embedding extracted by GraphTransformer.  And `.obs['Pred']` saves the results of the prediction.
+* `result.csv`: accuracy and F1 score of the prediction.
+
+
 
 ## Tutorial
 
-1. Install the required environment according to [Installation](#Installation)
-
-2. Create a folder `data` and download the datasets according to [Datasets](#Datasets)
-
-3. For more detailed information, run the tutorial [reference_query_example.ipynb](reference_query_example.ipynb) for how to do data preprocessing and training 
+1. Install the required environment according to [Installation](#Installation).
+2. Create a folder `data` and download [reference_query_example.h5ad](https://www.synapse.org/#!Synapse:syn52566797).
+3. For more detailed information, run the tutorial [reference_query_example.ipynb](reference_query_example.ipynb) for how to do data preprocessing and training.
 
 ## Citation
 
