@@ -1,6 +1,6 @@
 ![](figures/model.png)
 
-<font size=4> We propose a novel method, SANGO, for accurate single cell annotation by integrating genome sequences around the accessibility peaks within scAT-AC data.  </font> <br><br>
+<font size=4> We propose a novel method, SANGO, for accurate single cell annotation by integrating genome sequences around the accessibility peaks within scATAC data.  </font> <br><br>
 
 
 # SANGO
