@@ -155,8 +155,8 @@ def bbknn_construct_graph(datastr_name, data, batch_info,edge_ratio, train_label
                 inter_ratio[i][j].sort(reverse=True)
 
     f = open(os.path.join(save_path, "edge.txt"), 'w')
-    print("total edges: ", len(inter_ratio[1][0]))
-    print("edge_ratio: ", edge_ratio) 
+    # print("total edges: ", len(inter_ratio[1][0]))
+    # print("edge_ratio: ", edge_ratio) 
     for i in range(len(rows)):
         if batch[rows[i]]==batch[cols[i]]:
             f.write('{} {}\n'.format(rows[i], cols[i]))
@@ -171,7 +171,7 @@ def bbknn_construct_graph(datastr_name, data, batch_info,edge_ratio, train_label
     for index in range(cell_count):
         f.write('{} {}\n'.format(index, index))
     f.close()
-    check_graph_error_rate(datastr_name,batch_info,train_label, test_label, save_path)
+    # check_graph_error_rate(datastr_name,batch_info,train_label, test_label, save_path)
 
 def atac_data_graph_construction(data_path, train_name_list, test_name, sample_ratio, edge_ratio, label_name, save_path):
     # load data
@@ -251,17 +251,17 @@ def atac_data_graph_construction(data_path, train_name_list, test_name, sample_r
     # resample
     x = adata_train.X
     y = adata_train.obs[label_name].values
-    print('Original dataset shape %s' % Counter(y))
+    # print('Original dataset shape %s' % Counter(y))
 
     class_num_dict = {}
     min_num = (int)(adata_train.shape[0] * sample_ratio)
-    print(min_num)
+    # print(min_num)
     for i in np.unique(adata_train.obs[label_name].values):
         class_num_dict[i] = max(sum(adata_train.obs[label_name] == i), min_num)
 
     sm = SMOTE(sampling_strategy=class_num_dict)
     x_res, y_res = sm.fit_resample(x, y)
-    print('Resampled dataset shape %s' % Counter(y_res))
+    # print('Resampled dataset shape %s' % Counter(y_res))
 
     adata_train = AnnData(x_res)
     adata_train.obs[label_name] = y_res
@@ -292,8 +292,8 @@ def ATAC_Dataset(data_path, train_name_list, test_name, sample_ratio, edge_ratio
         labels = adata.obs[label_name].values
         labels = le.fit_transform(labels)
         n_classes = max(labels)+1
-        print(le.classes_)
-        print(f"n_classes: {n_classes}")
+        # print(le.classes_)
+        # print(f"n_classes: {n_classes}")
 
 
         edge_index = torch.from_numpy(edge.to_numpy().T)

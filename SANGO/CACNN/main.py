@@ -106,7 +106,7 @@ if __name__ == "__main__":
     # train
     if not args.w:
         optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, betas=(0.95, 0.9995))
-        logger.info("{}\n{}\n{}\n".format(model, model_summary(model), optimizer))
+        # logger.info("{}\n{}\n{}\n".format(model, model_summary(model), optimizer))
 
         criterion = nn.BCEWithLogitsLoss()
         scaler = GradScaler()

@@ -58,8 +58,8 @@ else:
 ### Load and preprocess data ###
 dataset, adata, le = load_ATAC_dataset(args.data_dir, args.train_name_list, args.test_name, args.sample_ratio, args.edge_ratio, save_path)
 
-# save input
-adata.write(os.path.join(save_path, "raw.h5ad"))
+# # save input
+# adata.write(os.path.join(save_path, "raw.h5ad"))
 
 if len(dataset.label.shape) == 1:
     dataset.label = dataset.label.unsqueeze(1)
@@ -101,7 +101,7 @@ else:
 logger = Logger(args.runs, args)
 
 model.train()
-print('MODEL:', model)
+# print('MODEL:', model)
 
 ### Adj storage for relational bias ###
 adjs = []
@@ -176,10 +176,10 @@ for run in range(args.runs):
     df = pd.DataFrame(dict_result, index=[0])
     df.to_csv(os.path.join(save_path, "result.csv"))
 
-    df_test_class_report = pd.DataFrame(test_class_report).T
-    df_test_class_report.to_csv(os.path.join(save_path, "test_class_report.csv"))
-    df_train_class_report = pd.DataFrame(train_class_report).T
-    df_train_class_report.to_csv(os.path.join(save_path, "train_class_report.csv"))
+    # df_test_class_report = pd.DataFrame(test_class_report).T
+    # df_test_class_report.to_csv(os.path.join(save_path, "test_class_report.csv"))
+    # df_train_class_report = pd.DataFrame(train_class_report).T
+    # df_train_class_report.to_csv(os.path.join(save_path, "train_class_report.csv"))
 
 
     best_val_model = GraphTransformer(d, args.hidden_channels, c, num_layers=args.num_layers, dropout=args.dropout,
