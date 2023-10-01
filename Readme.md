@@ -1,5 +1,8 @@
 ![](figures/model.png)
 
+<font size=4> We propose a novel method, SANGO, for accurate single cell annotation by integrating genome sequences around the accessibility peaks within scAT-AC data.  </font> <br><br>
+
+
 # SANGO
 
 The official implementation for "**SANGO**".
@@ -14,9 +17,9 @@ The official implementation for "**SANGO**".
 
 ## Datasets
 
-To Do.
 
 We provide an easy access to the used datasets in the [synapse](https://www.synapse.org/#!Synapse:syn52559388/files/).
+
 
 ## Installation
 
@@ -44,7 +47,6 @@ pip install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -
 
 ### data preprocessing
 
-To Do.
 
 In order to run **SANGO**, we need to first create anndata from the raw data.
 
@@ -104,4 +106,11 @@ If you find our codes useful, please consider citing our work:
 
 ~~~bibtex
 
+
+@article{zengSANGO,
+  title={Deciphering Cell Types by Integrating scATAC-seq Data with Genome Sequences},
+  author={Yuansong Zeng, Mai Luo, Ningyuan Shangguan, Peiyu Shi, Junxi Feng, Jin Xu, Weijiang Yu, and Yuedong Yang},
+  journal={Biorxiv},
+  year={2023},
+}
 ~~~
