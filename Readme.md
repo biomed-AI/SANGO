@@ -36,7 +36,7 @@ and then run the following code to install the required package:
 pip install -r requirements.txt
 ~~~
 
-and then install [PyG](https://pytorch-geometric.readthedocs.io/en/latest/install/installation.html) according to the CUDA version, take torch-1.13.1+cu117 as an example:
+and then install [PyG](https://pytorch-geometric.readthedocs.io/en/latest/install/installation.html) according to the CUDA version, take torch-1.13.1+cu117 (Ubuntu 20.04.4 LTS) as an example:
 
 ~~~shell
 pip install torch_geometric
@@ -95,10 +95,37 @@ Running the above command will generate three output files in the output path:
 
 ## Tutorial
 
+### Tutorial 1: Cell annotations within samples (LargeIntestineB_LargeIntestineA)
 1. Install the required environment according to [Installation](#Installation).
-2. Create a folder `data` and download [reference_query_example.h5ad](https://www.synapse.org/#!Synapse:syn52566797).
+2. Create a folder `data` and download datasets from [LargeIntestineA_LargeIntestineB.h5ad](https://www.synapse.org/#!Synapse:syn52566797).
 3. Create a folder `genome` and download [mm9.fa.h5](https://www.synapse.org/#!Synapse:syn52566798).
-4. For more detailed information, run the tutorial [reference_query_example.ipynb](reference_query_example.ipynb) for how to do data preprocessing and training.
+4. For more detailed information, run the tutorial [LargeIntestineB_LargeIntestineA.ipynb](reference_query_example.ipynb) for how to do data preprocessing and training.
+
+
+
+
+### Tutorial 2: Cell annotations on datasets cross platforms (MosP1_Cerebellum)
+1. Install the required environment according to [Installation](#Installation).
+2. Create a folder `data` and download datasets from [MosP1_Cerebellum.h5ad](https://www.synapse.org/#!Synapse:syn52566797).
+3. Create a folder `genome` and download [mm10.fa.h5](https://www.synapse.org/#!Synapse:syn52566798).
+4. For more detailed information, run the tutorial [MosP1_Cerebellum.ipynb](MosP1_Cerebellum.ipynb) for how to do data preprocessing and training.
+
+
+
+
+### Tutorial 3: Cell annotations on datasets cross tissues (BoneMarrowB_Liver)
+1. Install the required environment according to [Installation](#Installation).
+2. Create a folder `data` and download datasets from [BoneMarrowB_Liver.h5ad](https://www.synapse.org/#!Synapse:syn52566797).
+3. Create a folder `genome` and download [mm9.fa.h5](https://www.synapse.org/#!Synapse:syn52566798).
+4. For more detailed information, run the tutorial [BoneMarrowB_Liver.ipynb](BoneMarrowB_Liver.ipynb) for how to do data preprocessing and training.
+
+
+### Tutorial 4: Multi-level cell type annotation and unknown cell type identification
+1. Install the required environment according to [Installation](#Installation).
+2. Create a folder `data` and download datasets from [BCC_TIL_atlas.h5ad, BCC_samples.zip, HHLA_atlas.h5ad](https://www.synapse.org/#!Synapse:syn52566797).
+3. Create a folder `genome` and download [GRCh38.primary_assembly.genome.fa.h5](https://www.synapse.org/#!Synapse:syn52566798).
+4. For more detailed information, run the tutorial [tumor_example.ipynb](tumor_example.ipynb) for how to do data preprocessing and training.
+
 
 ## Citation
 
@@ -110,7 +137,7 @@ If you find our codes useful, please consider citing our work:
 @article{zengSANGO,
   title={Deciphering Cell Types by Integrating scATAC-seq Data with Genome Sequences},
   author={Yuansong Zeng, Mai Luo, Ningyuan Shangguan, Peiyu Shi, Junxi Feng, Jin Xu, Weijiang Yu, and Yuedong Yang},
-  journal={Biorxiv},
+  journal={},
   year={2023},
 }
 ~~~
