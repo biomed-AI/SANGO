@@ -99,7 +99,7 @@ Running the above command will generate three output files in the output path:
 1. Install the required environment according to [Installation](#Installation).
 2. Create a folder `data` and download datasets from [LargeIntestineA_LargeIntestineB.h5ad](https://www.synapse.org/#!Synapse:syn52566797).
 3. Create a folder `genome` and download [mm9.fa.h5](https://www.synapse.org/#!Synapse:syn52566798).
-4. For more detailed information, run the tutorial [LargeIntestineB_LargeIntestineA.ipynb](reference_query_example.ipynb) for how to do data preprocessing and training.
+4. For more detailed information, run the tutorial [LargeIntestineB_LargeIntestineA.ipynb](LargeIntestineB_LargeIntestineA.ipynb) for how to do data preprocessing and training.
 
 
 
