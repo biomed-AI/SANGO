@@ -123,7 +123,7 @@ Running the above command will generate three output files in the output path:
 ### Tutorial 4: Multi-level cell type annotation and unknown cell type identification
 1. Install the required environment according to [Installation](#Installation).
 2. Create a `data` folder in the same directory as the 'SANGO' folder and download datasets from [BCC_TIL_atlas.h5ad, BCC_samples.zip, HHLA_atlas.h5ad](https://www.synapse.org/#!Synapse:syn52559388/files/).
-3. Create a folder `genome` in the ./SANGO/CACNN/ directory and download [GRCh38.primary_assembly.genome.fa.h5](https://www.synapse.org/#!Synapse:syn52559388/files/).
+3. Create a `genome` folder in the same directory as the 'SANGO' folder and download [GRCh38.primary_assembly.genome.fa.h5](https://www.synapse.org/#!Synapse:syn52559388/files/).
 4. For more detailed information, run the tutorial [tumor_example.ipynb](tumor_example.ipynb) for how to do data preprocessing and training.
 
 
