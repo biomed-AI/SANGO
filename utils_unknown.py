@@ -1,4 +1,4 @@
-# Part of the code comes from scATAnno
+# This part of the code is referenced from scATAnno.
 import numpy as np
 import pandas as pd
 import os
