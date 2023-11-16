@@ -50,7 +50,7 @@ pip install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -
 
 In order to run **SANGO**, we need to first create anndata from the raw data.
 
-The h5ad file should have cells as obs and peaks as var. There should be at least three columns in `var`:  `chr`, `start`, `end` that indicate the genomic region of each peak. The h5ad file should also contain two columns in the `obs`: `Batch` and `CellType`, where `Batch` is used to distinguish between reference and query data, and `CellType` indicates the true label of the cell.
+The h5ad file should have cells as obs and peaks as var. There should be at least three columns in `var`:  `chr`, `start`, `end` that indicate the genomic region of each peak. The h5ad file should also contain two columns in the `obs`: `Batch` and `CellType` （reference data）, where `Batch` is used to distinguish between reference and query data, and `CellType` indicates the true label of the cell.
 
 Notice that we filter out peaks accessible in < 1% cells for optimal performance.
 
