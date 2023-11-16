@@ -89,7 +89,7 @@ Running the above command will generate three output files in the output path:
 
 * `model.pkl`: storing the model weights with the best valid loss during training.
 * `embedding.h5ad`: an anndata file storing the embedding extracted by GraphTransformer.  And `.obs['Pred']` saves the results of the prediction.
-* `result.csv`: accuracy and F1 score of the prediction.
+
 
 
 
