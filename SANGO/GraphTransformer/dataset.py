@@ -173,98 +173,102 @@ def bbknn_construct_graph(datastr_name, data, batch_info,edge_ratio, train_label
     f.close()
     # check_graph_error_rate(datastr_name,batch_info,train_label, test_label, save_path)
 
-def atac_data_graph_construction(data_path, train_name_list, test_name, sample_ratio, edge_ratio, label_name, save_path):
+def atac_data_graph_construction(data_path, train_name_list, test_name, sample_ratio, edge_ratio, label_name, save_path, save_unknown, save_rare, no_smote):
     # load data
     adata = sc.read_h5ad(data_path)
 
     # train data
     adata_train = None
     batch = []
-    print("shape of train data:")
+    # print("shape of train data:")
     for train_name in train_name_list:
         adata_iter = adata[adata.obs['Batch'] == train_name]
-        print(f"\t{adata_iter.shape}")
+        # print(f"\t{adata_iter.shape}")
         if adata_train is None:
             adata_train = adata_iter
         else:
             adata_train = sc.AnnData.concatenate(adata_train, adata_iter)
         batch += [train_name] * adata_iter.shape[0]
     adata_train.obs['batch'] = batch
-    print("shape of concat train data:")
-    print(f"\t{adata_train.shape}")
+    # print("shape of concat train data:")
+    # print(f"\t{adata_train.shape}")
 
     adata_test = None
-    print("shape of test data:")
+    # print("shape of test data:")
     for test_name_iter in test_name:
         adata_iter = adata[adata.obs["Batch"] == test_name_iter]
-        print(f"\t{adata_iter.shape}")
+        # print(f"\t{adata_iter.shape}")
         if adata_test is None:
             adata_test = adata_iter
         else:
             adata_test = sc.AnnData.concatenate(adata_test, adata_iter)
-    print("shape of concat test data:")
-    print(f"\t{adata_test.shape}")
+    # print("shape of concat test data:")
+    # print(f"\t{adata_test.shape}")
 
     #----- preprocess -----
 
-    # remove unknown
-    adata_train = adata_train[adata_train.obs[label_name] != 'Unknown']
-    adata_train = adata_train[adata_train.obs[label_name] != 'unknown']
-    #adata_train = adata_train[adata_train.obs[label_name].values.notnull()]
+    if not save_unknown:
+        # remove unknown
+        adata_train = adata_train[adata_train.obs[label_name] != 'Unknown']
+        adata_train = adata_train[adata_train.obs[label_name] != 'unknown']
+        #adata_train = adata_train[adata_train.obs[label_name].values.notnull()]
 
-    adata_test = adata_test[adata_test.obs[label_name] != 'Unknown']
-    adata_test = adata_test[adata_test.obs[label_name] != 'unknown']
-    #adata_test = adata_test[adata_test.obs[label_name].values.notnull()]
+        adata_test = adata_test[adata_test.obs[label_name] != 'Unknown']
+        adata_test = adata_test[adata_test.obs[label_name] != 'unknown']
+        #adata_test = adata_test[adata_test.obs[label_name].values.notnull()]
 
-    print(f"----------after remove unknown----------")
-    print(f"shape of train data: {adata_train.shape}")
-    print(f"shape of test data: {adata_test.shape}")
+        # print(f"----------after remove unknown----------")
+        # print(f"shape of train data: {adata_train.shape}")
+        # print(f"shape of test data: {adata_test.shape}")
 
-    # remove rare
-    class_list = np.unique(adata_train.obs[label_name].values)
-    for i in class_list:
-        if sum(adata_train.obs[label_name].values == i) <= 10:
-            adata_train = adata_train[adata_train.obs[label_name] != i]
-    
-    class_list = np.unique(adata_test.obs[label_name].values)
-    for i in class_list:
-        if sum(adata_test.obs[label_name].values == i) <= 10:
+    if not save_rare:
+        # remove rare
+        class_list = np.unique(adata_train.obs[label_name].values)
+        for i in class_list:
+            if sum(adata_train.obs[label_name].values == i) <= 10:
+                adata_train = adata_train[adata_train.obs[label_name] != i]
+
+        class_list = np.unique(adata_test.obs[label_name].values)
+        for i in class_list:
+            if sum(adata_test.obs[label_name].values == i) <= 10:
+                adata_test = adata_test[adata_test.obs[label_name] != i]
+
+        # print(f"----------after remove rare----------")
+        # print(f"shape of train data: {adata_train.shape}")
+        # print(f"shape of test data: {adata_test.shape}")
+
+        # intersection
+        intersection = np.intersect1d(
+            np.unique(adata_train.obs[label_name].values), 
+            np.unique(adata_test.obs[label_name].values)
+        )
+        difference = np.setdiff1d(np.unique(adata_test.obs[label_name].values), intersection)
+        for i in difference:
             adata_test = adata_test[adata_test.obs[label_name] != i]
-    
-    print(f"----------after remove rare----------")
-    print(f"shape of train data: {adata_train.shape}")
-    print(f"shape of test data: {adata_test.shape}")
-                
-    # intersection
-    intersection = np.intersect1d(
-        np.unique(adata_train.obs[label_name].values), 
-        np.unique(adata_test.obs[label_name].values)
-    )
-    difference = np.setdiff1d(np.unique(adata_test.obs[label_name].values), intersection)
-    for i in difference:
-        adata_test = adata_test[adata_test.obs[label_name] != i]
-    
-    print(f"----------after intersect----------")
-    print(f"shape of train data: {adata_train.shape}")
-    print(f"shape of test data: {adata_test.shape}")
 
-    # resample
-    x = adata_train.X
-    y = adata_train.obs[label_name].values
-    # print('Original dataset shape %s' % Counter(y))
+        # print(f"----------after intersect----------")
+        # print(f"shape of train data: {adata_train.shape}")
+        # print(f"shape of test data: {adata_test.shape}")
 
-    class_num_dict = {}
-    min_num = (int)(adata_train.shape[0] * sample_ratio)
-    # print(min_num)
-    for i in np.unique(adata_train.obs[label_name].values):
-        class_num_dict[i] = max(sum(adata_train.obs[label_name] == i), min_num)
+    if not no_smote:
+        # resample
+        x = adata_train.X
+        y = adata_train.obs[label_name].values
+        # print('Original dataset shape %s' % Counter(y))
 
-    sm = SMOTE(sampling_strategy=class_num_dict)
-    x_res, y_res = sm.fit_resample(x, y)
-    # print('Resampled dataset shape %s' % Counter(y_res))
+        class_num_dict = {}
+        min_num = (int)(adata_train.shape[0] * sample_ratio)
+        # print(min_num)
+        for i in np.unique(adata_train.obs[label_name].values):
+            class_num_dict[i] = max(sum(adata_train.obs[label_name] == i), min_num)
 
-    adata_train = AnnData(x_res)
-    adata_train.obs[label_name] = y_res
+        sm = SMOTE(sampling_strategy=class_num_dict)
+        x_res, y_res = sm.fit_resample(x, y)
+        # print('Resampled dataset shape %s' % Counter(y_res))
+
+        adata_train = AnnData(x_res)
+        adata_train.obs[label_name] = y_res
+        adata_train.obs['Batch'] = train_name_list[0]
 
     data = np.vstack((adata_train.X, adata_test.X))
     batch_info = []
@@ -283,9 +287,9 @@ def atac_data_graph_construction(data_path, train_name_list, test_name, sample_r
 
     return adata_train, adata_test
 
-def ATAC_Dataset(data_path, train_name_list, test_name, sample_ratio, edge_ratio, label_name, save_path, le):
+def ATAC_Dataset(data_path, train_name_list, test_name, sample_ratio, edge_ratio, label_name, save_path, le, save_unknown, save_rare, no_smote):
         # load data
-        adata_train, adata_test = atac_data_graph_construction(data_path, train_name_list, test_name, sample_ratio, edge_ratio, label_name, save_path)
+        adata_train, adata_test = atac_data_graph_construction(data_path, train_name_list, test_name, sample_ratio, edge_ratio, label_name, save_path, save_unknown, save_rare, no_smote)
         edge = pd.read_csv(os.path.join(save_path, "edge.txt"), header=None, sep=" ")
         # data and label
         adata = sc.AnnData.concatenate(adata_train, adata_test)
@@ -321,11 +325,11 @@ def ATAC_Dataset(data_path, train_name_list, test_name, sample_ratio, edge_ratio
         val_mask = torch.from_numpy(np.array(val_mask))
         test_mask = torch.arange(adata_train.shape[0], adata.shape[0])
 
-        return edge_index, node_feat, label, num_nodes, train_mask, val_mask, test_mask, adata
+        return edge_index, node_feat, label, num_nodes, train_mask, val_mask, test_mask, adata, adata_train.shape[0], adata_test.shape[0]
 
-def load_ATAC_dataset(data_dir, train_name, test_name, sample_ratio, edge_ratio, save_path, label_name='CellType'):
+def load_ATAC_dataset(data_dir, train_name, test_name, sample_ratio, edge_ratio, save_path, save_unknown, save_rare, no_smote, label_name='CellType'):
     le = preprocessing.LabelEncoder()
-    edge_index, node_feat, label, num_nodes, train_mask, val_mask, test_mask, adata = ATAC_Dataset(data_dir, train_name, test_name, sample_ratio, edge_ratio, label_name, save_path, le)
+    edge_index, node_feat, label, num_nodes, train_mask, val_mask, test_mask, adata, train_shape, test_shape = ATAC_Dataset(data_dir, train_name, test_name, sample_ratio, edge_ratio, label_name, save_path, le, save_unknown, save_rare, no_smote)
 
     dataset = NCDataset('ATAC')
 
@@ -339,7 +343,7 @@ def load_ATAC_dataset(data_dir, train_name, test_name, sample_ratio, edge_ratio,
                      'num_nodes': num_nodes}
     dataset.label = label
 
-    return dataset, adata, le
+    return dataset, adata, le, train_shape, test_shape
 
 
 

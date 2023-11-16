@@ -70,6 +70,24 @@ def get_embedding(model, dataset, split_idx, args, adata, le, save_path):
     adata_embedding.obs['Pred'] = pred
     adata_embedding.write(os.path.join(save_path, f"embedding.h5ad"))
 
+@torch.no_grad()
+def get_embedding_weight(model, dataset, split_idx, args, adata, le, save_path, train_shape, test_shape):
+    model.eval()
+    pred, layer_, weight_ = model(dataset.graph['node_feat'], dataset.graph['adjs'], args.tau, train_shape, test_shape, return_embedding=True)
+    prob = pred.max(dim=-1).values.detach().cpu().numpy()
+    pred = pred.argmax(dim=-1, keepdim=True).detach().cpu().numpy()
+    pred = le.inverse_transform(pred)
+
+    embedding = layer_[-1].squeeze(0).cpu().numpy()
+    adata_embedding = AnnData(embedding)
+    adata_embedding.obs['CellType'] = adata.obs['CellType'].values
+    adata_embedding.obs['Batch'] = adata.obs['Batch'].values
+    adata_embedding.obs['Pred'] = pred
+    adata_embedding.obs['Prob'] = prob
+    adata_embedding.obs.index = adata.obs.index.values
+    adata_embedding.write(os.path.join(save_path, f"embedding.h5ad"))
+    
+    np.save(os.path.join(save_path, f"weight.npy"), weight_)
 
 
 @torch.no_grad()
@@ -81,32 +99,32 @@ def evaluate(model, dataset, split_idx, eval_func, criterion, args, le):
         dataset.label[split_idx['train']], out[split_idx['train']])
     valid_acc = eval_func(
         dataset.label[split_idx['valid']], out[split_idx['valid']])
-    test_acc = eval_func(
-        dataset.label[split_idx['test']], out[split_idx['test']])
+    # test_acc = eval_func(
+    #     dataset.label[split_idx['test']], out[split_idx['test']])
 
     
-    t_acc = accuracy(
-        out[split_idx['test']], dataset.label[split_idx['test']])
-    t_kappa = kappa(
-        out[split_idx['test']], dataset.label[split_idx['test']])
-    t_macro_F1 = macro_F1(
-        out[split_idx['test']], dataset.label[split_idx['test']])
-    t_micro_F1 = micro_F1(
-        out[split_idx['test']], dataset.label[split_idx['test']])
-    t_median_F1 = median_F1(
-        out[split_idx['test']], dataset.label[split_idx['test']])
-    t_average_F1 = average_F1(
-        out[split_idx['test']], dataset.label[split_idx['test']])
-    t_mF1 = mf1(
-        out[split_idx['test']], dataset.label[split_idx['test']])
-    t_class_report = class_report(
-        out[split_idx['test']], dataset.label[split_idx['test']], le)
+    # t_acc = accuracy(
+    #     out[split_idx['test']], dataset.label[split_idx['test']])
+    # t_kappa = kappa(
+    #     out[split_idx['test']], dataset.label[split_idx['test']])
+    # t_macro_F1 = macro_F1(
+    #     out[split_idx['test']], dataset.label[split_idx['test']])
+    # t_micro_F1 = micro_F1(
+    #     out[split_idx['test']], dataset.label[split_idx['test']])
+    # t_median_F1 = median_F1(
+    #     out[split_idx['test']], dataset.label[split_idx['test']])
+    # t_average_F1 = average_F1(
+    #     out[split_idx['test']], dataset.label[split_idx['test']])
+    # t_mF1 = mf1(
+    #     out[split_idx['test']], dataset.label[split_idx['test']])
+    # t_class_report = class_report(
+    #     out[split_idx['test']], dataset.label[split_idx['test']], le)
     
-    train_class_reprot = class_report(
-        out[split_idx['train']], dataset.label[split_idx['train']], le)
+    # train_class_reprot = class_report(
+    #     out[split_idx['train']], dataset.label[split_idx['train']], le)
 
     out = F.log_softmax(out, dim=1)
     valid_loss = criterion(
         out[split_idx['valid']], dataset.label.squeeze(1)[split_idx['valid']])
 
-    return train_acc, valid_acc, test_acc, valid_loss, t_acc, t_kappa, t_macro_F1, t_micro_F1, t_median_F1, t_average_F1, t_mF1, t_class_report, train_class_reprot, out
+    return train_acc, valid_acc, valid_loss

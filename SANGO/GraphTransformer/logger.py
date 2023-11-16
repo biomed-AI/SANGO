@@ -10,7 +10,8 @@ class Logger(object):
         self.results = [[] for _ in range(runs)]
 
     def add_result(self, run, result):
-        assert len(result) == 11
+        # assert len(result) == 11
+        assert len(result) == 3
         assert run >= 0 and run < len(self.results)
         self.results[run].append(result)
 
@@ -26,7 +27,7 @@ class Logger(object):
         print(f'Highest Train: {100 * result[:, 0].max():.2f}')
         print(f'Highest Valid: {100 * result[:, 1].max():.2f}')
         print(f'Highest Test: {100 * result[:, 2].max():.2f}')
-        print(f'Chosen epoch: {ind+1}')
+        print(f'Optimal validation epoch: {ind+1}')
         print(f'Final Train: {100 * result[ind, 0]:.2f}')
         print(f'Final Test: {100 * result[ind, 2]:.2f}')
 

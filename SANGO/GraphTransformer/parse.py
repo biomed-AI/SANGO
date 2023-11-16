@@ -50,6 +50,9 @@ def parser_add_main_args(parser):
     parser.add_argument("--save_path", type=str, default="../../output")
     parser.add_argument("--save_name", type=str, default="BoneMarrowB_liver")
 
-
+    parser.add_argument("--save_unknown", action='store_true', help='remove unknown cell type', default=False)
+    parser.add_argument("--save_rare", action='store_true', help='remove cell types with numbers less than 10', default=False)
+    parser.add_argument("--no_smote", action='store_true', help='Up-sampling with smote', default=False)
+    parser.add_argument("--get_weight", action='store_true', help='get weight of GraphTransformer', default=False)
 
 

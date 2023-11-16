@@ -11,14 +11,10 @@ from torch_geometric.utils import remove_self_loops, add_self_loops
 from logger import Logger
 from dataset import load_ATAC_dataset
 from data_utils import load_fixed_splits, adj_mul
-from eval import evaluate, eval_acc, eval_rocauc, eval_f1, get_embedding
+from eval import evaluate, eval_acc, eval_rocauc, eval_f1, get_embedding, get_embedding_weight
 from parse import parser_add_main_args
-
-import warnings
-warnings.filterwarnings('ignore')
-
 import pandas as pd
-from model import GraphTransformer
+from tqdm import tqdm
 
 # NOTE: for consistent data splits, see data_utils.rand_train_test_idx
 def fix_seed(seed):
@@ -32,7 +28,7 @@ def fix_seed(seed):
 parser = argparse.ArgumentParser(description='General Training Pipeline')
 parser_add_main_args(parser)
 args = parser.parse_args()
-print(args)
+# print(args)
 
 # save args
 if not os.path.exists(args.save_path):
@@ -56,7 +52,7 @@ else:
     device = torch.device("cuda:" + str(args.device)) if torch.cuda.is_available() else torch.device("cpu")
 
 ### Load and preprocess data ###
-dataset, adata, le = load_ATAC_dataset(args.data_dir, args.train_name_list, args.test_name, args.sample_ratio, args.edge_ratio, save_path)
+dataset, adata, le, train_shape, test_shape = load_ATAC_dataset(args.data_dir, args.train_name_list, args.test_name, args.sample_ratio, args.edge_ratio, save_path, args.save_unknown, args.save_rare, args.no_smote)
 
 # # save input
 # adata.write(os.path.join(save_path, "raw.h5ad"))
@@ -75,14 +71,19 @@ e = dataset.graph['edge_index'].shape[1]
 c = max(dataset.label.max().item() + 1, dataset.label.shape[1])
 d = dataset.graph['node_feat'].shape[1]
 
-print(f"num nodes {n} | num edge {e} | num node feats {d} | num classes {c}")
+# print(f"num nodes {n} | num edge {e} | num node feats {d} | num classes {c}")
 
-print(f"train {split_idx_lst[0]['train'].shape} | valid {split_idx_lst[0]['valid'].shape} | test {split_idx_lst[0]['test'].shape}")
+# print(f"train {split_idx_lst[0]['train'].shape} | valid {split_idx_lst[0]['valid'].shape} | test {split_idx_lst[0]['test'].shape}")
 
 dataset.graph['edge_index'], dataset.graph['node_feat'] = \
     dataset.graph['edge_index'].to(device), dataset.graph['node_feat'].to(device)
 
 ### Load method ###
+if args.get_weight:
+    from model_weight import GraphTransformer
+else:
+    from model import GraphTransformer
+
 model=GraphTransformer(d, args.hidden_channels, c, num_layers=args.num_layers, dropout=args.dropout,
                     num_heads=args.num_heads, use_bn=args.use_bn, nb_random_features=args.M,
                     use_gumbel=args.use_gumbel, use_residual=args.use_residual, use_act=args.use_act, use_jk=args.use_jk,
@@ -122,7 +123,7 @@ for run in range(args.runs):
     best_val = float('inf')
     class_report = None
 
-    for epoch in range(args.epochs):
+    for epoch in tqdm(range(args.epochs)):
         model.train()
         optimizer.zero_grad()
 
@@ -138,43 +139,43 @@ for run in range(args.runs):
 
         if epoch % args.eval_step == 0:
             result = evaluate(model, dataset, split_idx, eval_func, criterion, args, le)
-            logger.add_result(run, result[:11])
+            logger.add_result(run, result)
 
-            if result[3] < best_val:
-                best_val = result[3]
-                test_class_report = result[11]
-                train_class_report = result[12]
+            if result[2] < best_val:
+                best_val = result[2]
+                # test_class_report = result[11]
+                # train_class_report = result[12]
                 torch.save(model.state_dict(), os.path.join(save_path, "model.pkl"))
 
-            print(f'Epoch: {epoch:02d}, '
-                  f'Loss: {loss:.4f}, '
-                  f'Valid Loss: {result[3]:.4f}, '
-                  f'Train: {100 * result[0]:.2f}%, '
-                  f'Valid: {100 * result[1]:.2f}%, '
-                  f'Test: {100 * result[2]:.2f}%, '
-                  f'acc: {result[4]:.4f}, '
-                  f'kappa: {result[5]:.4f}, '
-                  f'macro_F1: {result[6]:.4f}, '
-                  f'micro_F1: {result[7]:.4f}, '
-                  f'median_F1: {result[8]:.4f}, '
-                  f'average_F1: {result[9]:.4f}, '
-                  f'mF1: {result[10]:.4f}, '
-                  )
+            # print(f'Epoch: {epoch:02d}, '
+            #       f'Loss: {loss:.4f}, '
+            #       f'Valid Loss: {result[3]:.4f}, '
+            #       f'Train: {100 * result[0]:.2f}%, '
+            #       f'Valid: {100 * result[1]:.2f}%, '
+            #       f'Test: {100 * result[2]:.2f}%, '
+            #       f'acc: {result[4]:.4f}, '
+            #       f'kappa: {result[5]:.4f}, '
+            #       f'macro_F1: {result[6]:.4f}, '
+            #       f'micro_F1: {result[7]:.4f}, '
+            #       f'median_F1: {result[8]:.4f}, '
+            #       f'average_F1: {result[9]:.4f}, '
+            #       f'mF1: {result[10]:.4f}, '
+            #       )
 
-    result = logger.print_statistics(run, mode=None)
+    # result = logger.print_statistics(run, mode=None)
 
-    dict_result = {
-        "acc": result[4],
-        "kappa": result[5],
-        "macro F1": result[6],
-        "micro F1": result[7],
-        "median F1": result[8],
-        "average F1": result[9],
-        "mF1": result[10],
-    }
+    # dict_result = {
+    #     "acc": result[4],
+    #     "kappa": result[5],
+    #     "macro F1": result[6],
+    #     "micro F1": result[7],
+    #     "median F1": result[8],
+    #     "average F1": result[9],
+    #     "mF1": result[10],
+    # }
 
-    df = pd.DataFrame(dict_result, index=[0])
-    df.to_csv(os.path.join(save_path, "result.csv"))
+    # df = pd.DataFrame(dict_result, index=[0])
+    # df.to_csv(os.path.join(save_path, "result.csv"))
 
     # df_test_class_report = pd.DataFrame(test_class_report).T
     # df_test_class_report.to_csv(os.path.join(save_path, "test_class_report.csv"))
@@ -188,4 +189,7 @@ for run in range(args.runs):
                     nb_gumbel_sample=args.K, rb_order=args.rb_order, rb_trans=args.rb_trans).to(device)
     best_val_model.load_state_dict(torch.load(os.path.join(save_path, "model.pkl")))
 
-    get_embedding(best_val_model, dataset, split_idx, args, adata, le, save_path)
+    if args.get_weight:
+        get_embedding_weight(best_val_model, dataset, split_idx, args, adata, le, save_path, train_shape, test_shape)
+    else:
+        get_embedding(best_val_model, dataset, split_idx, args, adata, le, save_path)

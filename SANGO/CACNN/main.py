@@ -72,13 +72,13 @@ if __name__ == "__main__":
     logger.info(get_run_info(sys.argv, args))
 
     if args.g == "hg38":
-        genome = "../../genome/GRCh38.primary_assembly.genome.fa.h5"
+        genome = "./genome/GRCh38.primary_assembly.genome.fa.h5"
     elif args.g == "hg19":
-        genome = "../../genome/GRCh38.primary_assembly.genome.fa.h5"
+        genome = "./genome/GRCh38.primary_assembly.genome.fa.h5"
     elif args.g == "mm9":
-        genome = "../../genome/mm9.fa.h5"
+        genome = "./genome/mm9.fa.h5"
     elif args.g == "mm10":
-        genome = "../../genome/mm10.fa.h5"
+        genome = "./genome/mm10.fa.h5"
     ds = dataset.SingleCellDataset(dataset.load_adata(args.data), seq_len=args.seq_len, genome=genome)
 
     train_loader = DataLoader(
@@ -145,24 +145,24 @@ if __name__ == "__main__":
                 pbar.set_postfix_str(f"loss/lr={np.nanmean(pool):.4f}/{lr:.3e}")
 
             val_auc = test_model(model, valid_loader)
-            logger.info("Validation{} AUC={:.4f}/{:.4f}".format((epoch + 1), val_auc.mean(), np.std(val_auc)))
+            # logger.info("Validation{} AUC={:.4f}/{:.4f}".format((epoch + 1), val_auc.mean(), np.std(val_auc)))
             val_score = val_auc.mean()
             scheduler.step(val_score)
             if val_score > best_score:
                 best_score = val_score
                 wait = 0
                 torch.save(model.state_dict(), "{}/CACNN_best_model.pt".format(args.outdir))
-                logger.info(f"Epoch {epoch+1}: best model saved\n")
+                # logger.info(f"Epoch {epoch+1}: best model saved\n")
             else:
                 wait += 1
-                logger.info(f"Epoch {epoch+1}: early stopping patience {wait}/{patience}\n")
+                # logger.info(f"Epoch {epoch+1}: early stopping patience {wait}/{patience}\n")
                 if wait >= patience:
-                    logger.info(f"Epoch {epoch+1}: early stopping")
+                    # logger.info(f"Epoch {epoch+1}: early stopping")
                     break
 
     model.load_state_dict(torch.load("{}/CACNN_best_model.pt".format(args.outdir)))
     embedding = model.get_embedding().detach().cpu().numpy()
-    logger.info("embedding: {}".format(embedding.shape))
+    # logger.info("embedding: {}".format(embedding.shape))
     adata = sc.AnnData(
         embedding,
         obs=ds.obs,
@@ -172,5 +172,5 @@ if __name__ == "__main__":
     sc.tl.leiden(adata)
     adata.write_h5ad("{}/CACNN_output.h5ad".format(args.outdir), compression="gzip")
 
-    logger.info("ARI={}".format(adjusted_rand_score(adata.obs["CellType"], adata.obs["leiden"])))
+    # logger.info("ARI={}".format(adjusted_rand_score(adata.obs["CellType"], adata.obs["leiden"])))
 
