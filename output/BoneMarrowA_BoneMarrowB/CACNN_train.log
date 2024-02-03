@@ -1,0 +1,5 @@
+INFO(20240119 10:23:26) [main.py:84]:
+##time: Fri Jan 19 10:23:26 2024
+##cwd: /data/user/luomai/SANGO_annotation/SANGO
+##cmd: SANGO/CACNN/main.py -i /bigdat2/user/shanggny/SANGO/raw/Intra/BoneMarrowA_BoneMarrowB.h5ad -g mm9 -o output/BoneMarrowA_BoneMarrowB --device 3
+##args: Namespace(alpha=0.0, batch_size=128, data='/bigdat2/user/shanggny/SANGO/raw/Intra/BoneMarrowA_BoneMarrowB.h5ad', device=3, g='mm9', lr=0.01, max_epoch=300, num_workers=32, outdir='output/BoneMarrowA_BoneMarrowB', seed=2020, seq_len=1344, use_reg_cell=False, w=False, z=64)

@@ -200,6 +200,9 @@ def model_summary(model):
     
     
 def set_seed(seed: int, force_deterministic: bool=False):
+    """
+    set seed
+    """
     if float(torch.version.cuda) >= 10.2:
         os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
     random.seed(seed)

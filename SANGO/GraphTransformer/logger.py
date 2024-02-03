@@ -10,8 +10,7 @@ class Logger(object):
         self.results = [[] for _ in range(runs)]
 
     def add_result(self, run, result):
-        # assert len(result) == 11
-        assert len(result) == 3
+        assert len(result) == 11
         assert run >= 0 and run < len(self.results)
         self.results[run].append(result)
 

@@ -11,6 +11,15 @@ ONEHOT = torch.cat((
 ), dim=0).float()
 
 class ConvTower(nn.Module):
+    """
+    CNN layer with ECA-Net
+
+    in_channel: input dim
+    out_channel: output dim
+    kernel_size: kernel size of CNN
+
+    return: embedding after CNN layer
+    """
     def __init__(self, in_channel, out_channel: int, kernel_size) -> None:
         super().__init__()
         self.conv1 = nn.Conv1d(in_channel, out_channel, kernel_size, padding=kernel_size//2, stride=1, bias=False)
@@ -50,6 +59,9 @@ class ConvTower(nn.Module):
         return y
 
 class CACNN(nn.Module):
+    """
+    CACNN model implementation
+    """
     def __init__(self, n_cells: int, batch_ids: Optional[Iterable[int]]=None, use_reg_cell=False, hidden_size=32, seq_len: int=1344):
         super().__init__()
         self.config = {
@@ -69,23 +81,23 @@ class CACNN(nn.Module):
 
         # 1
         current_len = seq_len
-        self.pre_conv = nn.Sequential( # input: (batch_size, 4, seq_len)
+        self.pre_conv = nn.Sequential(                  # input: (batch_size, 4, seq_len)
             nn.Conv1d(4, out_channels=288, kernel_size=17, padding=8),
             nn.BatchNorm1d(288),
-            nn.MaxPool1d(kernel_size=3), # output: (batch_size, 288, 448)
+            nn.MaxPool1d(kernel_size=3),                # output: (batch_size, 288, 448)
             nn.ReLU(),
         )
         current_len = current_len // 3
 
         # 2
         self.conv_towers = []
-        self.conv_towers.append(ConvTower(288, 64, 5))
+        self.conv_towers.append(ConvTower(288, 64, 5))  # output: (batch_size, 64, 224)
         current_len = current_len // 2
-        self.conv_towers.append(ConvTower(64, 128, 5))
+        self.conv_towers.append(ConvTower(64, 128, 5))  # output: (batch_size, 128, 112)
         current_len = current_len // 2
-        self.conv_towers.append(ConvTower(128, 256, 5))
+        self.conv_towers.append(ConvTower(128, 256, 5)) # output: (batch_size, 256, 56)
         current_len = current_len // 2
-        self.conv_towers.append(ConvTower(256, 512, 5))
+        self.conv_towers.append(ConvTower(256, 512, 5)) # output: (batch_size, 512, 28)
         current_len = current_len // 2
         self.conv_towers = nn.Sequential(*self.conv_towers)
 
@@ -93,12 +105,12 @@ class CACNN(nn.Module):
         self.post_conv = nn.Sequential(
             nn.Conv1d(512, 256, kernel_size=1),
             nn.BatchNorm1d(256),
-            nn.ReLU(), # (batch_size, 256, 7)
+            nn.ReLU(),                                  # output: (batch_size, 256, 28)
         )
         current_len = current_len // 1
 
         # 4
-        self.flatten = nn.Flatten() # (batch_size, 1792)
+        self.flatten = nn.Flatten()                     # output: (batch_size, 7168)
 
         current_len = current_len * 256
 
@@ -107,24 +119,27 @@ class CACNN(nn.Module):
             nn.Linear(current_len, hidden_size),
             nn.BatchNorm1d(hidden_size),
             nn.ReLU(),
-            nn.Dropout(0.2),
+            nn.Dropout(0.2),                            # output: (batch_size, 64)
         )
 
         # 6 
-        self.cell_embedding = nn.Linear(hidden_size, n_cells)
+        self.cell_embedding = nn.Linear(hidden_size, n_cells)   # output: (batch_size, 10537)
     
     def get_embedding(self):
         return self.cell_embedding.state_dict()["weight"]
     
     
     def forward(self, sequence: Tensor) -> Tensor:
+        # transform sequence to one-hot vector
         sequence = self.onehot[sequence.long()].transpose(1, 2)
+
         sequence = self.pre_conv(sequence)
         sequence = self.conv_towers(sequence)
         sequence = self.post_conv(sequence)
         sequence = self.flatten(sequence)
-        sequence = self.dense(sequence) # (B, hidden_size)
+        sequence = self.dense(sequence)
         logits = self.cell_embedding(sequence)
+        
         if(self.use_reg_cell):
             lr_reg_cell = torch.norm(self.cell_embedding.weight, p=2) + torch.norm(self.cell_embedding.bias, p=2)
         else:

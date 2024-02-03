@@ -2,6 +2,7 @@ import os
 from collections import defaultdict
 
 import torch
+from torch import Tensor
 import torch.nn.functional as F
 import numpy as np
 from scipy import sparse as sp
@@ -9,8 +10,24 @@ from scipy import sparse as sp
 from torch_sparse import SparseTensor
 
 
-def rand_train_test_idx(label, train_prop=.5, valid_prop=.25, ignore_negative=True):
-    """ randomly splits label into train/valid/test splits """
+def rand_train_test_idx(
+        label:Tensor, 
+        train_prop:float=.5, 
+        valid_prop:float=.25, 
+        ignore_negative:bool=True
+    ):
+    """ Randomly splits label into train/valid/test set 
+
+    label:
+        The labels of the whole dataset.
+    train_prop:
+        The proportion of training set([0, 1]).
+    test_prop:
+        The proportion of test set([0, 1]). Then the proportion of validation set turn to (1 - train_prop - test_prop).
+    ignore_negative:
+        Whether to skip negative values.
+
+    """
     if ignore_negative:
         labeled_nodes = torch.where(label != -1)[0]
     else:
@@ -37,6 +54,12 @@ def rand_train_test_idx(label, train_prop=.5, valid_prop=.25, ignore_negative=Tr
 
 
 def load_fixed_splits(dataset):
+    """ Use the already segmented dataset as a reference to segment the current dataset
+    
+    dataset:
+        Dataset already segmented via "rand_train_test_idx"
+
+    """
     splits_lst = []
     splits = {}
     splits['train'] = torch.as_tensor(dataset.train_idx)
@@ -46,7 +69,11 @@ def load_fixed_splits(dataset):
     return splits_lst
 
 
-def class_rand_splits(label, label_num_per_class):
+def class_rand_splits(
+        label: np.array, 
+        label_num_per_class: int,
+    ):
+    """Split dataset by referring class labels"""
     train_idx, non_train_idx = [], []
     idx = torch.arange(label.shape[0])
     class_list = label.squeeze().unique()
@@ -66,13 +93,16 @@ def class_rand_splits(label, label_num_per_class):
     return train_idx, valid_idx, test_idx
 
 
-def even_quantile_labels(vals, nclasses, verbose=True):
-    """ partitions vals into nclasses by a quantile based split,
-    where the first class is less than the 1/nclasses quantile,
-    second class is less than the 2/nclasses quantile, and so on
+def even_quantile_labels(
+        vals: np.array, 
+        nclasses: int, 
+        verbose: bool=True
+    ):
+    """ Partitions vals into nclasses by a quantile based split,
+        where the first class is less than the 1/nclasses quantile,
+        second class is less than the 2/nclasses quantile, and so on
 
-    vals is np array
-    returns an np array of int class labels
+        Returns an np array of int class labels
     """
     label = -1 * np.ones(vals.shape[0], dtype=np.int)
     interval_lst = []

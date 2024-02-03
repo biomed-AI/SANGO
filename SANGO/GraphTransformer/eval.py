@@ -92,6 +92,9 @@ def get_embedding_weight(model, dataset, split_idx, args, adata, le, save_path, 
 
 @torch.no_grad()
 def evaluate(model, dataset, split_idx, eval_func, criterion, args, le):
+    '''
+    compute accuracy of training set, validation set and test set.
+    '''
     model.eval()
     out, _ = model(dataset.graph['node_feat'], dataset.graph['adjs'], args.tau)
 
@@ -99,32 +102,26 @@ def evaluate(model, dataset, split_idx, eval_func, criterion, args, le):
         dataset.label[split_idx['train']], out[split_idx['train']])
     valid_acc = eval_func(
         dataset.label[split_idx['valid']], out[split_idx['valid']])
-    # test_acc = eval_func(
-    #     dataset.label[split_idx['test']], out[split_idx['test']])
-
+    test_acc = eval_func(
+        dataset.label[split_idx['test']], out[split_idx['test']])
     
-    # t_acc = accuracy(
-    #     out[split_idx['test']], dataset.label[split_idx['test']])
-    # t_kappa = kappa(
-    #     out[split_idx['test']], dataset.label[split_idx['test']])
-    # t_macro_F1 = macro_F1(
-    #     out[split_idx['test']], dataset.label[split_idx['test']])
-    # t_micro_F1 = micro_F1(
-    #     out[split_idx['test']], dataset.label[split_idx['test']])
-    # t_median_F1 = median_F1(
-    #     out[split_idx['test']], dataset.label[split_idx['test']])
-    # t_average_F1 = average_F1(
-    #     out[split_idx['test']], dataset.label[split_idx['test']])
-    # t_mF1 = mf1(
-    #     out[split_idx['test']], dataset.label[split_idx['test']])
-    # t_class_report = class_report(
-    #     out[split_idx['test']], dataset.label[split_idx['test']], le)
-    
-    # train_class_reprot = class_report(
-    #     out[split_idx['train']], dataset.label[split_idx['train']], le)
+    t_acc = accuracy(
+        out[split_idx['test']], dataset.label[split_idx['test']])
+    t_kappa = kappa(
+        out[split_idx['test']], dataset.label[split_idx['test']])
+    t_macro_F1 = macro_F1(
+        out[split_idx['test']], dataset.label[split_idx['test']])
+    t_micro_F1 = micro_F1(
+        out[split_idx['test']], dataset.label[split_idx['test']])
+    t_median_F1 = median_F1(
+        out[split_idx['test']], dataset.label[split_idx['test']])
+    t_average_F1 = average_F1(
+        out[split_idx['test']], dataset.label[split_idx['test']])
+    t_mF1 = mf1(
+        out[split_idx['test']], dataset.label[split_idx['test']])
 
     out = F.log_softmax(out, dim=1)
     valid_loss = criterion(
         out[split_idx['valid']], dataset.label.squeeze(1)[split_idx['valid']])
 
-    return train_acc, valid_acc, valid_loss
+    return train_acc, valid_acc, test_acc, valid_loss, t_acc, t_kappa, t_macro_F1, t_micro_F1, t_median_F1, t_average_F1, t_mF1

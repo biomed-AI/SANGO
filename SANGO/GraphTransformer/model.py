@@ -9,6 +9,8 @@ from torch_geometric.utils import degree
 BIG_CONSTANT = 1e8
 
 def create_projection_matrix(m, d, seed=0, scaling=0, struct_mode=False):
+    """ Projection_matrix which maps features to another dimension in kernel function
+    """
     nb_full_blocks = int(m/d)
     block_list = []
     current_seed = seed
@@ -63,6 +65,10 @@ def create_products_of_givens_rotations(dim, seed):
     return torch.tensor(q, dtype=torch.float32)
 
 def relu_kernel_transformation(data, is_query, projection_matrix=None, numerical_stabilizer=0.001):
+    """ Apply a relu kernel function to weight matrix
+        projection_matrix is used here to map features to another dimension
+    """
+
     del is_query
     if projection_matrix is None:
         return F.relu(data) + numerical_stabilizer
@@ -74,6 +80,10 @@ def relu_kernel_transformation(data, is_query, projection_matrix=None, numerical
         return F.relu(data_dash) + numerical_stabilizer
 
 def softmax_kernel_transformation(data, is_query, projection_matrix=None, numerical_stabilizer=0.000001):
+    """ Apply a softmax kernel function to weight matrix
+        projection_matrix is used here to map features to another dimension
+    """
+
     data_normalizer = 1.0 / torch.sqrt(torch.sqrt(torch.tensor(data.shape[-1], dtype=torch.float32)))
     data = data_normalizer * data
     ratio = 1.0 / torch.sqrt(torch.tensor(projection_matrix.shape[0], dtype=torch.float32))
@@ -96,30 +106,44 @@ def softmax_kernel_transformation(data, is_query, projection_matrix=None, numeri
     return data_dash
 
 def numerator(qs, ks, vs):
-    kvs = torch.einsum("nbhm,nbhd->bhmd", ks, vs) # kvs refers to U_k in the paper
-    return torch.einsum("nbhm,bhmd->nbhd", qs, kvs)
+    kvs = torch.einsum("nbhm,nbhd->bhmd", ks, vs)       # bh(mn) * bh(nd) = bh(md)
+    return torch.einsum("nbhm,bhmd->nbhd", qs, kvs)     # bh(nm) * bh(md) = bh(nd)
 
 def denominator(qs, ks):
     all_ones = torch.ones([ks.shape[0]]).to(qs.device)
-    ks_sum = torch.einsum("nbhm,n->bhm", ks, all_ones) # ks_sum refers to O_k in the paper
+    ks_sum = torch.einsum("nbhm,n->bhm", ks, all_ones) 
     return torch.einsum("nbhm,bhm->nbh", qs, ks_sum)
 
 def numerator_gumbel(qs, ks, vs):
-    kvs = torch.einsum("nbhkm,nbhd->bhkmd", ks, vs) # kvs refers to U_k in the paper
+    kvs = torch.einsum("nbhkm,nbhd->bhkmd", ks, vs) 
     return torch.einsum("nbhm,bhkmd->nbhkd", qs, kvs)
 
 def denominator_gumbel(qs, ks):
     all_ones = torch.ones([ks.shape[0]]).to(qs.device)
-    ks_sum = torch.einsum("nbhkm,n->bhkm", ks, all_ones) # ks_sum refers to O_k in the paper
+    ks_sum = torch.einsum("nbhkm,n->bhkm", ks, all_ones) 
     return torch.einsum("nbhm,bhkm->nbhk", qs, ks_sum)
 
-def kernelized_softmax(query, key, value, kernel_transformation, projection_matrix=None, edge_index=None, tau=0.25, return_weight=True):
-    '''
-    fast computation of all-pair attentive aggregation with linear complexity
-    input: query/key/value [B, N, H, D]
-    return: updated node emb, attention weight (for computing edge loss)
-    B = graph number (always equal to 1 in Node Classification), N = node number, H = head number,
-    M = random feature dimension, D = hidden size
+def kernelized_softmax(
+        query: torch.Tensor, 
+        key: torch.Tensor, 
+        value: torch.Tensor, 
+        kernel_transformation, 
+        projection_matrix: torch.Tensor=None, 
+        edge_index=None, 
+        tau: float=0.25, 
+        return_weight: bool=True,
+    ):    
+    ''' Fast computation of all-pair attentive aggregation with linear complexity
+        Based on the equation: Attn(Q, K, V) = \sigma \frac{exp(score(k_i, Q))v_i}{\sigma exp(score(k_i, Q))}
+
+        Input: query/key/value [B, N, H, D]
+        Return: updated node emb, attention weight (for computing edge loss)
+
+        B = graph number (always equal to 1 in Node Classification), 
+        N = node number, 
+        H = head number,
+        M = random feature dimension, 
+        D = hidden size
     '''
     query = query / math.sqrt(tau)
     key = key / math.sqrt(tau)
@@ -153,14 +177,29 @@ def kernelized_softmax(query, key, value, kernel_transformation, projection_matr
     else:
         return z_output
 
-def kernelized_gumbel_softmax(query, key, value, kernel_transformation, projection_matrix=None, edge_index=None,
-                                K=10, tau=0.25, return_weight=True):
-    '''
-    fast computation of all-pair attentive aggregation with linear complexity
-    input: query/key/value [B, N, H, D]
-    return: updated node emb, attention weight (for computing edge loss)
-    B = graph number (always equal to 1 in Node Classification), N = node number, H = head number,
-    M = random feature dimension, D = hidden size, K = number of Gumbel sampling
+def kernelized_gumbel_softmax(
+        query: torch.Tensor, 
+        key: torch.Tensor, 
+        value: torch.Tensor, 
+        kernel_transformation, 
+        projection_matrix: torch.Tensor=None, 
+        edge_index=None,
+        K: int=10, 
+        tau: float=0.25, 
+        return_weight: bool=True,
+    ):
+    ''' Fast computation of all-pair attentive aggregation with linear complexity
+        Based on the equation: Attn(Q, K, V) = \sigma \frac{exp(score(k_i, Q))v_i}{\sigma exp(score(k_i, Q))}
+
+        Input: query/key/value [B, N, H, D]
+        Return: updated node emb, attention weight (for computing edge loss)
+
+        B = graph number (always equal to 1 in Node Classification), 
+        N = node number, 
+        H = head number,
+        M = random feature dimension, 
+        D = hidden size, 
+        K = number of Gumbel sampling
     '''
     query = query / math.sqrt(tau)
     key = key / math.sqrt(tau)
@@ -198,10 +237,15 @@ def kernelized_gumbel_softmax(query, key, value, kernel_transformation, projecti
     else:
         return z_output
 
-def add_conv_relational_bias(x, edge_index, b, trans='sigmoid'):
-    '''
-    compute updated result by the relational bias of input adjacency
-    the implementation is similar to the Graph Convolution Network with a (shared) scalar weight for each edge
+def add_conv_relational_bias(
+        x: torch.Tensor, 
+        edge_index, 
+        b: list, 
+        trans: str='sigmoid',
+    ):
+    ''' Compute updated result by the relational bias of input adjacency.
+        The implementation is similar to the Graph Convolution Network with a (shared) scalar weight for each edge.
+
     '''
     row, col = edge_index
     d_in = degree(col, x.shape[1]).float()
@@ -223,13 +267,31 @@ def add_conv_relational_bias(x, edge_index, b, trans='sigmoid'):
     return conv_output
 
 class GraphTransformerConv(nn.Module):
-    def __init__(self, in_channels, out_channels, num_heads, kernel_transformation=softmax_kernel_transformation, projection_matrix_type='a',
-                 nb_random_features=10, use_gumbel=True, nb_gumbel_sample=10, rb_order=0, rb_trans='sigmoid', use_edge_loss=True):
+    '''
+    GraphTransformerConv layer implementation
+    return: embedding and edge loss after layer
+    '''
+    def __init__(
+            self, 
+            in_channels: int, 
+            out_channels: int, 
+            num_heads: int, 
+            kernel_transformation=softmax_kernel_transformation, 
+            projection_matrix_type: str='a',
+            nb_random_features: int=10, 
+            use_gumbel: bool=True, 
+            nb_gumbel_sample: int=10, 
+            rb_order: int=0, 
+            rb_trans: str='sigmoid', 
+            use_edge_loss: bool=True
+        ):
         super(GraphTransformerConv, self).__init__()
         self.Wk = nn.Linear(in_channels, out_channels * num_heads)
         self.Wq = nn.Linear(in_channels, out_channels * num_heads)
         self.Wv = nn.Linear(in_channels, out_channels * num_heads)
         self.Wo = nn.Linear(out_channels * num_heads, out_channels)
+
+        # Use bias in GraphTransformer
         if rb_order >= 1:
             self.b = torch.nn.Parameter(torch.FloatTensor(rb_order, num_heads), requires_grad=True)
 
@@ -255,8 +317,16 @@ class GraphTransformerConv(nn.Module):
             elif self.rb_trans == 'identity':
                 torch.nn.init.constant_(self.b, 1.0)
 
-    def forward(self, z, adjs, tau):
+    def forward(
+            self, 
+            z: torch.Tensor, 
+            adjs: torch.Tensor, 
+            tau: float,
+        ):
+
         B, N = z.size(0), z.size(1)
+
+        # The weight matrix Q, K, V
         query = self.Wq(z).reshape(-1, N, self.num_heads, self.out_channels)
         key = self.Wk(z).reshape(-1, N, self.num_heads, self.out_channels)
         value = self.Wv(z).reshape(-1, N, self.num_heads, self.out_channels)
@@ -297,9 +367,49 @@ class GraphTransformerConv(nn.Module):
             return z_next
 
 class GraphTransformer(nn.Module):
-    def __init__(self, in_channels, hidden_channels, out_channels, num_layers=2, num_heads=4, dropout=0.0,
-                 kernel_transformation=softmax_kernel_transformation, nb_random_features=30, use_bn=True, use_gumbel=True,
-                 use_residual=True, use_act=False, use_jk=False, nb_gumbel_sample=10, rb_order=0, rb_trans='sigmoid', use_edge_loss=True):
+    '''
+    GraphTransformer model implementation
+    return: predicted node labels, a list of edge losses at every layer
+    '''
+    def __init__(
+            self, 
+            in_channels: int, 
+            hidden_channels: int,
+            out_channels: int, 
+            num_layers: int=2, 
+            num_heads: int=4, 
+            dropout: float=0.0,
+            kernel_transformation=softmax_kernel_transformation, 
+            nb_random_features: int=30, 
+            use_bn: bool=True, 
+            use_gumbel: bool=True,
+            use_residual: bool=True, 
+            use_act: bool=False, 
+            use_jk: bool=False, 
+            nb_gumbel_sample: int=10, 
+            rb_order: int=0, 
+            rb_trans: str='sigmoid', 
+            use_edge_loss: bool=True
+        ):
+        """ Construct a GraphTransformer object.
+
+        in_channels/hidden_channels/out_channels:
+            The dimension of input/hidden feature/output.
+        num_layers:
+            Then number of GraphTransformerConv layers.
+        num_heads:
+            The number of head in multi-head attention.
+        kernel_transformation:
+            The kernel function to progress the weight matrix Q and K.
+        nb_gumbel_sample:
+            Number of Gumbel sampling.
+        rb_order:
+            Whether to use bias in GraphTransformer.
+        rb_trans:
+            Whether to use Sigmoid to smooth the output in GraphTransformer.
+        use_edge_loss:
+            Whether to add a loss of the reconstruction to the original graph.
+        """        
         super(GraphTransformer, self).__init__()
 
         self.convs = nn.ModuleList()
@@ -315,6 +425,7 @@ class GraphTransformer(nn.Module):
             self.bns.append(nn.LayerNorm(hidden_channels))
 
         if use_jk:
+            # use jk connection for each layer
             self.fcs.append(nn.Linear(hidden_channels * num_layers + hidden_channels, out_channels))
         else:
             self.fcs.append(nn.Linear(hidden_channels, out_channels))
@@ -335,7 +446,13 @@ class GraphTransformer(nn.Module):
         for fc in self.fcs:
             fc.reset_parameters()
 
-    def forward(self, x, adjs, tau=1.0, return_embedding=False):
+    def forward(
+            self, 
+            x: torch.Tensor, 
+            adjs, 
+            tau: float=1.0, 
+            return_embedding: bool=False
+        ):
         x = x.unsqueeze(0) # [B, N, H, D], B=1 denotes number of graph
         layer_ = []
         link_loss_ = []

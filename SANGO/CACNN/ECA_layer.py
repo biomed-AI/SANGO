@@ -2,12 +2,16 @@ from torch import nn
 import math
 
 class eca_layer(nn.Module):
-    """Constructs a ECA module.
+    """Constructs a ECA module. from https://arxiv.org/abs/1910.03151
     Args:
         channel: Number of channels of the input feature map
         k_size: Adaptive selection of kernel size
     """
     def __init__(self, channel, gamma=2, b=1):
+        """ A method for adaptively adjusting the size of convolutional kernels
+            according to gamma and b
+        
+        """
         super(eca_layer, self).__init__()
 
         t = int(abs((math.log(channel, 2) + b) / gamma))
